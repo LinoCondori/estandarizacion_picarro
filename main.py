@@ -90,7 +90,7 @@ def procesar_archivos():
             contenido = archivo.read()
         # sobreescribir el CSV con el encabezado
         with open(output_path, "w", encoding="utf-8") as archivo:
-            archivo.write("".join(lineas) + contenido)
+            archivo.write("".join(lineas).replace('*primer valor*','').replace('*mayoria*','').replace('*promedio*','') + contenido)
 
 
     config["database"]["last_date"] = (fecha - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
