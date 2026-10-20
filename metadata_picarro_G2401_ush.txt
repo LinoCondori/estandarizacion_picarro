@@ -1,0 +1,59 @@
+########################################################################
+######################### PARA ARCHIVO MINUTAL #########################
+########################################################################
+# Instrumento: Picarro
+# Modelo: G2401
+# Número de serie: 2634-CFKADS2238
+# Número de patrimonio SMN: 18028
+# Estación: Ushuaia, USH, Tierra del Fuego (GAW Global, WIGOS 0-20008-0-USH)
+# Coordenadas de ubicación instrumento: -54.8485 -68.310694 18 m snm (54° 50' 54.6" S, 68° 18' 38.5" W)
+# Inicio de mediciones: julio de 2017
+# Frecuencia de medición: 5 seg (avg 1 min)
+# Fecha de última auditoría EMPA: marzo de 2026
+# Escala de calibración: CO2 WMO X2019; CH4 WMO X2004A; CO WMO X2014A (https://gml.noaa.gov/ccl/scales.html)
+# Investigador responsable: María Emilia Ruiz (meruiz@smn.gob.ar - Servicio Meteorológico Nacional); Lino Condorí (lcondori@smn.gob.ar - Servicio Meteorológico Nacional)
+# --------------------------------------------------------------------
+# Parámetros relevantes:
+# parámetros de diagnóstico: presión de cavidad (nominal 140 Torr), temperatura de cavidad (nominal 45 °C)
+# otros: OutletValve, ALARM_STATUS, INST_STATUS
+#
+# Información clave:
+# Secador Nafion Perma Pure PD-50T-12MPS, (SN: 082119-02) conexión en modo reflujo; además el analizador tiene usa corrección por H2O de fábrica (valores dry)
+# Caudal de muestra [completar] lpm;
+# Línea de entrada Synflex 1300 de 3/8", 7 m de largo total (3 m en el laboratorio, 1 m en el entretecho, 3 m por el exterior desde el techo);
+# Selección de aire por válvulas solenoides (ver solenoid_valves); MPV no utilizada (siempre 0)
+# Bomba de Vacio VACUUBRAND GMBH + CO KG Model: MD 1, SN: 41672002
+# --------------------------------------------------------------------
+# Nivel de procesamiento: L0+ (promedio minutal de L0, sin calibración ni correcciones ni descarte de datos)
+# Script de procesamiento: [nombre completar], versión [completar], GitLab SMN [ruta completar]
+# Valor faltante: [completar]
+# --------------------------------------------------------------------
+# Descripción de variables:
+# DateTime: YYYY-MM-dd hh:mm:ss  fecha y hora de muestreo en hora UTC $*primer valor*&N
+# ALARM_STATUS: banderas de alarmas del instrumento $*mayoria*&0
+# INST_STATUS: banderas de estado del instrumento (963 = operación normal) $*mayoria*&0
+# CavityPressure: Torr, presión de la cavidad óptica $*promedio*&4
+# CavityTemp: °C, temperatura de la cavidad óptica $*promedio*&4
+# DasTemp: °C, temperatura de la placa logica $*promedio*&4
+# EtalonTemp: °C, temperatura del etalón $*promedio*&4
+# WarmBoxTemp: °C, temperatura del compartimiento térmico (warm box) $*promedio*&4
+# MPVPosition: posición de la válvula multipuerto (no utilizada, siempre 0) $*mayoria*&0
+# solenoid_valves: posicion de electrovalvulas que indica el aire medido: $*mayoria*&0
+#   0 = aire ambiente (medición)
+#   35 = estabilización tanque de calibración 1 (flushing); 3 = tanque de calibración #1 (curva de calibración)
+#   37 = estabilización tanque de calibración 2 (flushing); 5 = tanque de calibración #2 (curva de calibración)
+#   41 = estabilización tanque de calibración 3 (flushing); 9 = tanque de calibración #3 (curva de calibración)
+#   49 = estabilización target (flushing); 17 = target (control, con bandera propia)
+#   32 = estabilización al volver a aire ambiente (flushing)
+# OutletValve: cuentas DAC (0-65535), señal de control de apertura de la válvula de salida; su deriva indica cambios en el caudal o en la bomba $*promedio*&1
+# CO_sync: ppm, fracción molar de CO sin corrección a seco $*promedio*&5
+# CO2_sync:  ppm, fracción molar de CO2 sin corrección por H2O $*promedio*&4
+# CO2_dry_sync: ppm, fracción molar de CO2 en aire seco $*promedio*&4
+# CH4_sync: ppm, fracción molar de CH4 sin corrección por H2O $*promedio*&5
+# CH4_dry_sync: ppm, fracción molar de CH4 en aire seco $*promedio*&5
+# N: cantidad de datos de 5 seg promediados en el minuto (máx. 12) $*agregar*&0
+# SD_CO_sync: ppm, desviación estándar de CO_sync en el minuto $*agregar*&5
+# SD_CO2_dry_sync: ppm, desviación estándar de CO2_dry_sync en el minuto $*agregar*&4
+# SD_CH4_dry_sync: ppm, desviación estándar de CH4_dry_sync en el minuto $*agregar*&5
+# H2O_sync: %, vapor de agua residual luego del secador Nafion $*promedio*&6
+# Comentarios: -

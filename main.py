@@ -21,7 +21,7 @@ with open(os.path.join(BASE_DIR, "config.json")) as f:
     fecha_inicial = pd.to_datetime(config["database"]["last_date"], format="%Y-%m-%d")
 
 
-with open("metadatos_picarroG2401_ush.txt", "r", encoding="utf-8") as f:
+with open("metadata_picarro_G2401_ush.txt", "r", encoding="utf-8") as f:
     # este proceso es para seleccionar solo las columnas que esten en el archivo de metadatos.
     # ademas sirve para seleccionar cuales de ellas seran promedio, cuales solo necesito el primer valor
     # y cuales de ellas necesito calcular la mayoria.
@@ -36,15 +36,31 @@ with open("metadatos_picarroG2401_ush.txt", "r", encoding="utf-8") as f:
     columnas_promedio = list()
     columnas_primero = list()
     columnas_mayoria = list()
+    columnas_agregar = list()
+    formato_decimales = {}
 
-    for linea in lineas[inicio_index:fin_index]:
-        columnas.append(linea[:linea.index(":")].replace("# ", ''))
-        if "primer valor" in linea:
-            columnas_primero.append(linea[:linea.index(":")].replace("# ", ''))
-        if "mayoria" in linea:
-            columnas_mayoria.append(linea[:linea.index(":")].replace("# ", ''))
-        if "promedio" in linea:
-            columnas_promedio.append(linea[:linea.index(":")].replace("# ", ''))
+    #for linea in :
+    for i in range(inicio_index,fin_index):
+        try:
+            columnas.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if "primer valor" in lineas[i]:
+                columnas_primero.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if "mayoria" in lineas[i]:
+                columnas_mayoria.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if "promedio" in lineas[i]:
+                columnas_promedio.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if "agregar" in lineas[i]:
+                columnas_agregar.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if '&' in lineas[i]:
+                formato_decimales[lineas[i][:lineas[i].index(":")].replace("# ", '')] = '{:.'+ str(int(lineas[i][lineas[i].index("&")+1:])) + 'f}'
+            if '$' in lineas[i]:
+                lineas[i] = lineas[i][:lineas[i].index('$')] + '\n'
+
+        except:
+            if '$' in lineas[i]:
+                lineas[i] = lineas[i][:lineas[i].index('$')] + '\n'
+            pass
+
 
 # Crear motor SQLAlchemy
 engine = create_engine(f"postgresql+psycopg2://{db_conf['user']}:{db_conf['password']}@{db_conf['host']}:{db_conf['port']}/{db_conf['name']}")
@@ -60,6 +76,16 @@ def minute_mode(x):
         return None
     return m.iloc[0]
 
+def aplicar_formato(columna):
+    if columna.name not in formato_decimales:
+        return columna
+
+    formato = formato_decimales[columna.name]
+
+    return columna.map(
+        lambda x: formato.format(x) if pd.notna(x) else ''
+    )
+
 
 
 def procesar_archivos():
@@ -68,20 +94,32 @@ def procesar_archivos():
 
         df_dia = bd.buscarEnBaseDeDatos(engine, db_conf['tabla'], fecha, fecha + pd.to_timedelta(arg=1, unit="D"))
         df_dia.drop(columns=['DateTime'], inplace=True)
-        df_dia["timestamp"] = df_dia.index
+        df_dia["DateTime"] = df_dia.index
 
         output_path = os.path.join(target_dir, folder_conf['nombre'] + fecha.strftime("%Y%m%d.csv"))
         # crear la carpeta si no existe
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
         # Calculo el archivo en formato minutalmente
-        df_dia = df_dia.resample('1min').agg({
+        df_mean = df_dia.resample('1min').agg({
             **{col: 'mean' for col in columnas_promedio},
             **{col: minute_mode for col in columnas_mayoria},
             **{col: 'first' for col in columnas_primero}
         })
 
+        df_sd = (
+            df_dia[columnas_promedio]
+            .resample('1min')
+            .std()
+            .add_prefix('SD_')
+        )
+        df_n = df_dia[columnas_promedio].resample('1min').count().add_prefix('N_')
+        df_n.rename(columns={df_n.columns.tolist()[-1]: 'N'}, inplace=True)
 
+        df_dia = pd.concat([df_mean, df_sd, df_n], axis=1)
+
+        #df_dia = df_dia.style.format(formato_decimales)
+        df_dia = df_dia.apply(aplicar_formato)
 
         # crear el CSV temporal
         df_dia[columnas].to_csv(output_path, index=False)
@@ -90,7 +128,7 @@ def procesar_archivos():
             contenido = archivo.read()
         # sobreescribir el CSV con el encabezado
         with open(output_path, "w", encoding="utf-8") as archivo:
-            archivo.write("".join(lineas).replace('*primer valor*','').replace('*mayoria*','').replace('*promedio*','') + contenido)
+            archivo.write("".join(lineas) + contenido)
 
 
     config["database"]["last_date"] = (fecha - pd.Timedelta(days=1)).strftime('%Y-%m-%d')
