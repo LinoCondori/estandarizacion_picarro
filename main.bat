@@ -2,6 +2,6 @@
 REM Activar el entorno virtual y ejecutar el script
 
 call .venv\Scripts\activate.bat
-python "Station GUI v0.8.0.2.py"
+python "main.py"
 deactivate
 pause
