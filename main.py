@@ -1,6 +1,7 @@
 import os, json, csv, shutil
 
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from sqlalchemy import create_engine
 import BaseDeDatos_Lib_v04 as bd
@@ -36,6 +37,7 @@ with open("metadata_picarro_G2401_ush.txt", "r", encoding="utf-8") as f:
     columnas_promedio = list()
     columnas_primero = list()
     columnas_mayoria = list()
+    columnas_and = list()
     columnas_agregar = list()
     formato_decimales = {}
 
@@ -43,14 +45,16 @@ with open("metadata_picarro_G2401_ush.txt", "r", encoding="utf-8") as f:
     for i in range(inicio_index,fin_index):
         try:
             columnas.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
-            if "primer valor" in lineas[i]:
+            if "*primer valor*" in lineas[i]:
                 columnas_primero.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
-            if "mayoria" in lineas[i]:
+            if "*mayoria*" in lineas[i]:
                 columnas_mayoria.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
-            if "promedio" in lineas[i]:
+            if "*promedio*" in lineas[i]:
                 columnas_promedio.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
-            if "agregar" in lineas[i]:
+            if "*agregar*" in lineas[i]:
                 columnas_agregar.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
+            if "*and*" in lineas[i]:
+                columnas_and.append(lineas[i][:lineas[i].index(":")].replace("# ", ''))
             if '&' in lineas[i]:
                 formato_decimales[lineas[i][:lineas[i].index(":")].replace("# ", '')] = '{:.'+ str(int(lineas[i][lineas[i].index("&")+1:])) + 'f}'
             if '$' in lineas[i]:
@@ -70,6 +74,23 @@ engine = create_engine(f"postgresql+psycopg2://{db_conf['user']}:{db_conf['passw
 # Rutas absolutas
 #ORIGEN =  os.path.join(FTP_DIR, folder_conf['cargado'])
 #DESTINO = ORIGEN
+
+def n_anomalo(x):
+    return (x != 963).sum()
+
+def bit_and(x):
+    valores = x.dropna().astype(int)
+
+    if valores.empty:
+        return np.nan
+
+    resultado = valores.iloc[0]
+
+    for valor in valores.iloc[1:]:
+        resultado &= valor
+
+    return resultado
+
 def minute_mode(x):
     m = x.mode()
     if len(m) == 0:
@@ -104,7 +125,8 @@ def procesar_archivos():
         df_mean = df_dia.resample('1min').agg({
             **{col: 'mean' for col in columnas_promedio},
             **{col: minute_mode for col in columnas_mayoria},
-            **{col: 'first' for col in columnas_primero}
+            **{col: 'first' for col in columnas_primero},
+            **{col: bit_and for col in columnas_and},
         })
 
         df_sd = (
@@ -113,8 +135,10 @@ def procesar_archivos():
             .std()
             .add_prefix('SD_')
         )
-        df_n = df_dia[columnas_promedio].resample('1min').count().add_prefix('N_')
-        df_n.rename(columns={df_n.columns.tolist()[-1]: 'N'}, inplace=True)
+        df_n = pd.DataFrame()
+        df_n['N'] = df_dia[columnas_and].resample('1min').count()
+        df_n['N_INST_anomalo'] = df_dia[columnas_and].resample('1min').apply(n_anomalo)
+        #df_n.rename(columns={df_n.columns.tolist()[-1]: 'N'}, inplace=True)
 
         df_dia = pd.concat([df_mean, df_sd, df_n], axis=1)
 

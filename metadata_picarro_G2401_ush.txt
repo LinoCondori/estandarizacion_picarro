@@ -30,13 +30,12 @@
 # Descripción de variables:
 # DateTime: YYYY-MM-dd hh:mm:ss  fecha y hora de muestreo en hora UTC, inicio del minuto promediado $*primer valor*&N
 # ALARM_STATUS: bandera de alarmas del instrumento (0 = operación normal) $*mayoria*&0
-# INST_STATUS: bandera de estado del instrumento (963 = operación normal) $*mayoria*&0
+# INST_STATUS: bandera de estado del instrumento (963 = operación normal) $*and*&0
 # CavityPressure: Torr, presión de la cavidad óptica (valor normal: 140 Torr)$*promedio*&4
 # CavityTemp: °C, temperatura de la cavidad óptica (valor normal: 45 °C)$*promedio*&4
 # DasTemp: °C, temperatura de la placa lógica; sigue a la temperatura de la sala (valor habitual: 36–45 °C) $*promedio*&4
 # EtalonTemp: °C, temperatura del etalón (valor habitual: ~45.1 °C)$*promedio*&4
 # WarmBoxTemp: °C, temperatura del compartimiento térmico (warm box) (valor habitual: ~45.0 °C)$*promedio*&4
-# MPVPosition: posición de la válvula multipuerto (no utilizada, siempre 0) $*mayoria*&0
 # solenoid_valves: posicion de electrovalvulas que indica el aire medido: $*mayoria*&0
 #   0 = aire ambiente (medición)
 #   35 = estabilización tanque de calibración 1 (flushing); 3 = tanque de calibración #1 (curva de calibración)
@@ -51,6 +50,7 @@
 # CH4_sync: ppm, fracción molar de CH4 sin corrección por H2O $*promedio*&5
 # CH4_dry_sync: ppm, fracción molar de CH4 en aire seco $*promedio*&5
 # N: cantidad de datos de 5 seg promediados en el minuto (máx. 12) $*agregar*&0
+# N_INST_anomalo: cantidad de datos de 5 seg distinto a operación normal (máx. 12) $*agregar*&0
 # SD_CO_sync: ppm, desviación estándar de CO_sync en el minuto $*agregar*&5
 # SD_CO2_dry_sync: ppm, desviación estándar de CO2_dry_sync en el minuto $*agregar*&4
 # SD_CH4_dry_sync: ppm, desviación estándar de CH4_dry_sync en el minuto $*agregar*&5
